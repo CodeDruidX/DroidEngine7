@@ -1,4 +1,4 @@
-v="7.0.0"
+v = "7.0.0"
 print(f"Droid 3d Engine v{v}")
 
 
@@ -6,50 +6,51 @@ import numpy as np
 import cv2
 import pygame
 
-def img_into_polygon(np_img : np.float32, np_polygon : np.float32):
+
+def img_into_polygon(np_img: np.float32, np_polygon: np.float32):
     h, w, _ = np_img.shape
-    bounds = np.array([[0.,0.],[w,0.],[w,h],[0.,h]]) # Изначальный квадрат изображения
+    bounds = np.array(
+        [[0.0, 0.0], [w, 0.0], [w, h], [0.0, h]]
+    )  # Изначальный квадрат изображения
 
-    heights, widths=np_polygon.T
-    max_h,max_w=max(heights),max(widths)
+    heights, widths = np_polygon.T
+    max_h, max_w = max(heights), max(widths)
 
-    perspective = cv2.getPerspectiveTransform(bounds,np_polygon)    # Матрица поворота
-    img=cv2.warpPerspective(np_img,perspective,(max_h,max_w),flags=cv2.INTER_AREA)
+    perspective = cv2.getPerspectiveTransform(bounds, np_polygon)  # Матрица поворота
+    img = cv2.warpPerspective(np_img, perspective, (max_h, max_w), flags=cv2.INTER_AREA)
 
-    return pygame.image.frombuffer(img.tobytes(), img.shape[1::-1], "RGBA").convert_alpha() # Конвертация в pygame пригодный формат
-
-
-def view3d(camera : np.float32,point : np.float32):
-    camera_system=point-camera[0]
-
-    xy_d=np.linalg.norm(camera_system[:2])
-    xyz_d=np.arctan2(xy_d,camera_system[2])-np.radians(camera[1][0])
-
-    zy_d=np.linalg.norm(camera_system[1:])
-    zyx_d=np.arctan2(zy_d,camera_system[0])-np.radians(camera[1][1])
-
-    return np.linalg.norm(camera_system),np.array([zyx_d,xyz_d])
+    return pygame.image.frombuffer(
+        img.tobytes(), img.shape[1::-1], "RGBA"
+    ).convert_alpha()  # Конвертация в pygame пригодный формат
 
 
-def screen_transform(angles,w,h,fov):
-    dir1,dir2=angles
-    w=((dir1-90)/fov)*w
-    h=((dir2-90)/fov)*h
+def view3d(camera: np.float32, point: np.float32):
+    camera_system = point - camera[0]
 
-    return int(w),int(h)
+    xy_d = np.linalg.norm(camera_system[:2])
+    xyz_d = np.arctan2(xy_d, camera_system[2]) - np.radians(camera[1][0])
 
-def render(camera,point,w=1920,h=1080,fov=90):
-    d,angles=view3d(camera,point)
-    return d,screen_transform(angles,w,h,fov)
+    zy_d = np.linalg.norm(camera_system[1:])
+    zyx_d = np.arctan2(zy_d, camera_system[0]) - np.radians(camera[1][1])
 
-
+    return np.linalg.norm(camera_system), np.array([zyx_d, xyz_d])
 
 
+def screen_transform(angles, w, h, fov):
+    dir1, dir2 = angles
+    w = ((dir1 - 90) / fov) * w
+    h = ((dir2 - 90) / fov) * h
+
+    return int(w), int(h)
 
 
+def render(camera, point, w=1920, h=1080, fov=90):
+    d, angles = view3d(camera, point)
+    return d, screen_transform(angles, w, h, fov)
 
-#camera=[[x,y],[vert_angle,horis_angle]]
-camera=np.float32([[0,0,0],[0,0,0]])
+
+# camera=[[x,y],[vert_angle,horis_angle]]
+camera = np.float32([[0, 0, 0], [0, 0, 0]])
 
 
 """
